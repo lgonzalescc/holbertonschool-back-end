@@ -1,31 +1,39 @@
 #!/usr/bin/python3
-''' Export data in the CSV format '''
+""" Using what you did in the task #0, extend your Python script
+to export data in the CSV format. """
 import csv
 import requests
 from sys import argv
 
 
-def get_api():
-    ''' Gather data from an API '''
-    url = 'https://jsonplaceholder.typicode.com/'
-    uid = argv[1]
+def Rest_API():
+    """ Get data """
+    # Validates if argument is integer and has index
+    try:
+        ID = int(argv[1])
+    except ValueError:
+        print("Value Error")
+        exit()
+    except IndexError:
+        print("Index Error")
+        exit()
 
-    # get a specific user from users in jsonplaceholder
-    usr = requests.get(url + 'users/{}'.format(uid)).json()
-    # make a query string to get tasks based on user id
-    todo = requests.get(url + 'todos', params={'userId': uid}).json()
+    # Get Method
+    todo = requests.get('https://jsonplaceholder.typicode.com/todos?userId={}'
+                        .format(ID))
+    user = requests.get('https://jsonplaceholder.typicode.com/users/{}'
+                        .format(ID))
 
-    with open('{}.csv'.format(uid), 'w') as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        for employee in todo:
-            user_id = uid
-            username = usr.get('username')
-            task_comp = employee.get('completed')
-            task_title = employee.get('title')
+    username = user.json().get('username')
 
-            emp_record = [user_id, username, task_comp, task_title]
-            writer.writerow(emp_record)
+    # Print
+    with open("{}.csv".format(ID), "w") as fo:
+        writer = csv.writer(fo, quoting=csv.QUOTE_ALL)
+        for data in todo.json():
+            text = data.get("title")
+            task = data.get("completed")
+            writer.writerow([ID, username, task, text])
 
 
 if __name__ == '__main__':
-    get_api()
+    Rest_API()
