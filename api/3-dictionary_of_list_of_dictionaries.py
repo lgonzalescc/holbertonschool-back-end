@@ -1,23 +1,36 @@
 #!/usr/bin/python3
-''' Export data in the JSON format '''
+"""Pulls the necessary data... and thank you for reading this"""
 import json
-import requests as r  # give an alias to the module
+from requests import get
+from sys import argv
 
 
-def get_api():
-    ''' Gather data from an API '''
-    url = "https://jsonplaceholder.typicode.com/"
-    user = r.get(url + "users").json()
+if __name__ == "__main__":
+    req = "https://jsonplaceholder.typicode.com"
 
-    with open("todo_all_employees.json", "w") as jsonfile:
-        json.dump({usr.get("id"): [{
-            "username": usr.get("username"),
-            "task": e.get("title"),
-            "completed": e.get("completed")
-        } for e in r.get(url + "todos",
-                         params={"userId": usr.get("id")}).json()]
-            for usr in user}, jsonfile)
+    task_data = get(req + '/todos').json()
+    user_data = get(req + '/users').json()
 
+    def fetch_name(id):
+        """Fetches the name for each ID"""
+        for data in user_data:
+            if data['id'] == id:
+                return data.get('username')
 
-if __name__ == '__main__':
-    get_api()
+    # Gets all the applicable IDs
+    id_list = []
+    for ids in user_data:
+        id_list.append(ids['id'])
+
+    # Generate the data for each dictionary, then append
+    final_data = {}
+    for all_ids in id_list:
+        the_dayta = [{'username': fetch_name(all_ids),
+                      'task': task.get('title'),
+                      'completed': task.get('completed')}
+                     for task in task_data]
+        final_data.update({all_ids: the_dayta})
+
+    filename = 'todo_all_employees.json'
+    with open(filename, mode='w') as the_file:
+        json.dump(final_data, the_file)
