@@ -1,39 +1,24 @@
 #!/usr/bin/python3
-""" Using what you did in the task #0, extend your Python script
-to export data in the CSV format. """
+"""Pulls the necessary data... and thank you for reading this"""
 import csv
-import requests
+from requests import get
 from sys import argv
 
 
-def Rest_API():
-    """ Get data """
-    # Validates if argument is integer and has index
-    try:
-        ID = int(argv[1])
-    except ValueError:
-        print("Value Error")
-        exit()
-    except IndexError:
-        print("Index Error")
-        exit()
+if __name__ == "__main__":
+    id, req = int(argv[1]), "https://jsonplaceholder.typicode.com"
 
-    # Get Method
-    todo = requests.get('https://jsonplaceholder.typicode.com/todos?userId={}'
-                        .format(ID))
-    user = requests.get('https://jsonplaceholder.typicode.com/users/{}'
-                        .format(ID))
+    # GETS THE TITLE OF COMPLETES TASKS
+    task_data = get(req + '/todos/?userId={}'.format(id)).json()
 
-    username = user.json().get('username')
+    # GETS THE NAME OF THE USER
+    user_data = get(req + '/users').json()
+    for data in user_data:
+        if data['id'] == id:
+            name = data.get('username')
 
-    # Print
-    with open("{}.csv".format(ID), "w") as fo:
-        writer = csv.writer(fo, quoting=csv.QUOTE_ALL)
-        for data in todo.json():
-            text = data.get("title")
-            task = data.get("completed")
-            writer.writerow([ID, username, task, text])
-
-
-if __name__ == '__main__':
-    Rest_API()
+    filename = '{}.csv'.format(id)
+    with open(filename, mode='w') as file:
+        w = csv.writer(file, quotechar='"', quoting=csv.QUOTE_ALL)
+        for task in task_data:
+            w.writerow([id, name, task.get('completed'), task.get('title')])
